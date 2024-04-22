@@ -1,0 +1,25 @@
+[meta]
+edition = 0
+identifier = "gitleaks"
+
+# Source
+
+[source.github]
+owner = "gitleaks"
+repo = "gitleaks"
+asset = "gitleaks_{version}_linux_x64.tar.gz"
+extract = "tar"
+
+[source.github.version]
+member = "tag_name"
+regex = "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
+
+# Install
+
+[install.binary]
+target = "gitleaks"
+# alias = "gl"
+
+[install.binary.version]
+arg = "version"
+regex = "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?"
