@@ -3,6 +3,7 @@
         "commitish",
         "ghapi",
         "gitleaks",
+        "skippable",
         "zipball"
     ]
 }

@@ -11,7 +11,7 @@ pub enum ReliefArgs {
 
 #[derive(Parser, Debug)]
 pub struct PickArgs {
-    #[arg(group = "pick_method", required = true)]
+    #[arg(group = "pick_method")]
     pub identifier: Option<String>,
     #[arg(short = 'f', long = "file", group = "pick_method")]
     pub config_file: Option<PathBuf>,

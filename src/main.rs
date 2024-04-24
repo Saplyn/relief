@@ -1,7 +1,7 @@
 use clap::Parser;
 use cli::args::ReliefArgs;
 use log::{info, LevelFilter};
-use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
+use simplelog::{ColorChoice, ConfigBuilder, TermLogger, TerminalMode};
 
 mod cli;
 mod config;
@@ -10,7 +10,9 @@ mod model;
 fn main() -> anyhow::Result<()> {
     TermLogger::init(
         LevelFilter::Trace,
-        Config::default(),
+        ConfigBuilder::default()
+            .add_filter_allow("relief".to_string())
+            .build(),
         TerminalMode::Stdout,
         ColorChoice::Auto,
     )?;
@@ -20,9 +22,9 @@ fn main() -> anyhow::Result<()> {
     info!("Parsed args: {:?}", args);
 
     match args {
-        ReliefArgs::Pick(args) => cli::pick(args),
-        ReliefArgs::Fetch(args) => cli::fetch(args),
-        ReliefArgs::Drop(args) => cli::drop(args),
+        ReliefArgs::Pick(args) => cli::pick(args)?,
+        ReliefArgs::Fetch(args) => cli::fetch(args)?,
+        ReliefArgs::Drop(args) => cli::drop(args)?,
     }
 
     Ok(())
