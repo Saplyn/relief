@@ -115,6 +115,7 @@ pub struct BinaryInstall {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct BinaryVersion {
+    #[serde(default = "default_version_arg")]
     pub arg: String,
     #[serde(default = "default_version_regex")]
     pub regex: String,
@@ -126,6 +127,9 @@ impl Default for BinaryVersion {
             regex: default_version_regex(),
         }
     }
+}
+fn default_version_arg() -> String {
+    "--version".to_string()
 }
 
 //~ Extract Type
@@ -163,7 +167,7 @@ pub fn all_extract_option() -> Vec<ExtractOption> {
 
 //~ Utility Functions
 
-pub fn default_version_regex() -> String {
+fn default_version_regex() -> String {
     DEFAULT_VERSION_REGEX.to_string()
 }
 pub const DEFAULT_VERSION_REGEX: &str = "[0-9]+\\.[0-9]+\\.[0-9]+(-[a-zA-Z0-9]+)?";
