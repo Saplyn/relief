@@ -21,6 +21,8 @@ use crate::config::{
 
 use super::{args::PickArgs, default_render_config};
 
+//~ Pick command impl
+
 #[derive(Debug, Error)]
 pub enum PickError {
     #[error("{0}")]
@@ -56,7 +58,7 @@ pub fn pick(app: &AppConfig, args: PickArgs) -> Result<(), PickError> {
     Ok(())
 }
 
-//~ Display Package Config
+//~ Display package config
 
 fn display_config(config: &PackageConfig) {
     println!("{}", "-----------------".purple());
@@ -100,7 +102,7 @@ fn display_config(config: &PackageConfig) {
     println!("{}", "-----------------".purple());
 }
 
-//~ Interactive Pick Prompt
+//~ Interactive pick prompt
 
 fn pick_interactive(app: &AppConfig, args: PickArgs) -> Result<PackageConfig, PickError> {
     let cfg = default_render_config();
