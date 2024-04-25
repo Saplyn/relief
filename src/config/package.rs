@@ -1,5 +1,5 @@
 use derive_more::Display;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 pub const NEWEST_EDITION: usize = 0;
 fn newest_edition() -> usize {
@@ -8,7 +8,7 @@ fn newest_edition() -> usize {
 
 //~ Package Config
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PackageConfig {
     pub meta: PackageMeta,
     pub source: PackageSource,
@@ -17,7 +17,7 @@ pub struct PackageConfig {
 
 //~ Package Meta
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct PackageMeta {
     #[serde(default = "newest_edition")]
     pub edition: usize,
@@ -26,7 +26,7 @@ pub struct PackageMeta {
 
 //~ Package Source
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "snake_case")]
 pub enum PackageSource {
     Github(Github),
@@ -42,7 +42,7 @@ pub fn all_package_sources() -> Vec<PackageSourceTag> {
 
 //~ Package Install
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct PackageInstall {
     pub binary: Option<BinaryInstall>,
 }
@@ -59,7 +59,7 @@ pub fn all_install_options_besides_noop() -> Vec<PackageInstallOption> {
 
 //~ Github Release Config
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Github {
     pub owner: String,
     pub repo: String,
@@ -68,7 +68,7 @@ pub struct Github {
     pub version: GithubVersion,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GithubVersion {
     #[serde(default = "default_gh_ver_member")]
     pub member: GhVerMember,
@@ -86,7 +86,8 @@ impl Default for GithubVersion {
 
 //~ Github API JSON Member
 
-#[derive(Deserialize, Debug, Default, Display)]
+#[derive(Serialize, Deserialize, Debug, Default, Display)]
+#[serde(rename_all = "snake_case")]
 pub enum GhVerMember {
     #[default]
     #[display(fmt = "`.tag_name`")]
@@ -103,14 +104,14 @@ fn default_gh_ver_member() -> GhVerMember {
 
 //~ Binary Install
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BinaryInstall {
     pub target: String,
-    pub alias: Option<String>,
+    pub rename: Option<String>,
     pub version: BinaryVersion,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct BinaryVersion {
     pub arg: String,
     #[serde(default = "default_version_regex")]
@@ -127,13 +128,14 @@ impl Default for BinaryVersion {
 
 //~ Extract Type
 
-#[derive(Deserialize, Debug, Display)]
+#[derive(Serialize, Deserialize, Debug, Display, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum ExtractType {
     Tar,
 }
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Clone, Copy)]
 pub enum ExtractOption {
+    #[display(fmt = "Don't extract")]
     None,
     Tar,
 }
@@ -142,6 +144,14 @@ impl From<ExtractOption> for Option<ExtractType> {
         match value {
             ExtractOption::None => None,
             ExtractOption::Tar => Some(ExtractType::Tar),
+        }
+    }
+}
+impl From<Option<ExtractType>> for ExtractOption {
+    fn from(value: Option<ExtractType>) -> Self {
+        match value {
+            None => ExtractOption::None,
+            Some(ExtractType::Tar) => ExtractOption::Tar,
         }
     }
 }

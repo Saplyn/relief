@@ -2,7 +2,7 @@ use inquire::ui::{Attributes, Color, ErrorMessageRenderConfig, RenderConfig, Sty
 use log::info;
 use thiserror::Error;
 
-use self::args::{DropArgs, FetchArgs};
+use self::args::{DropArgs, EditArgs, FetchArgs, ListArgs};
 
 pub mod args;
 mod pick;
@@ -17,6 +17,28 @@ pub enum FetchError {}
 
 pub fn fetch(args: FetchArgs) -> Result<(), FetchError> {
     info!("Fetch received args: {:?}", args);
+
+    Ok(())
+}
+
+//~ Drop
+
+#[derive(Debug, Error)]
+pub enum ListError {}
+
+pub fn list(args: ListArgs) -> Result<(), DropError> {
+    info!("List received args: {:?}", args);
+
+    Ok(())
+}
+
+//~ Edit
+
+#[derive(Debug, Error)]
+pub enum EditError {}
+
+pub fn edit(args: EditArgs) -> Result<(), DropError> {
+    info!("Edit received args: {:?}", args);
 
     Ok(())
 }

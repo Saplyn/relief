@@ -1,19 +1,22 @@
-use std::{fmt::Display, fs, io};
+use std::{fmt::Display, fs, io, path::Path};
 
 use inquire::{
     required,
     ui::{Attributes, Color, RenderConfig, Styled},
     Confirm, Select, Text,
 };
-use log::{debug, info};
+use log::info;
 use owo_colors::OwoColorize;
 use thiserror::Error;
 
 use crate::config::{
-    all_extract_option, all_gh_ver_members, all_install_options_besides_noop, all_package_sources,
-    BinaryInstall, BinaryVersion, Github, GithubVersion, PackageConfig, PackageInstall,
-    PackageInstallOption, PackageMeta, PackageSource, PackageSourceTag, DEFAULT_VERSION_REGEX,
-    NEWEST_EDITION,
+    app::AppConfig,
+    package::{
+        all_extract_option, all_gh_ver_members, all_install_options_besides_noop,
+        all_package_sources, BinaryInstall, BinaryVersion, ExtractOption, Github, GithubVersion,
+        PackageConfig, PackageInstall, PackageInstallOption, PackageMeta, PackageSource,
+        PackageSourceTag, DEFAULT_VERSION_REGEX, NEWEST_EDITION,
+    },
 };
 
 use super::{args::PickArgs, default_render_config};
@@ -21,38 +24,93 @@ use super::{args::PickArgs, default_render_config};
 #[derive(Debug, Error)]
 pub enum PickError {
     #[error("{0}")]
-    Io(#[from] io::Error),
+    IoErr(#[from] io::Error),
     #[error("{0}")]
-    TomlDe(#[from] toml::de::Error),
+    TomlDeErr(#[from] toml::de::Error),
     #[error("{0}")]
-    Inquire(#[from] inquire::InquireError),
+    InquireErr(#[from] inquire::InquireError),
+    #[error("Package with identifier {0} already exists")]
+    IdCollide(Box<str>),
 }
 
-pub fn pick(args: PickArgs) -> Result<(), PickError> {
+pub fn pick(app: &AppConfig, args: PickArgs) -> Result<(), PickError> {
     info!("Pick received args: {:?}", args);
     let config: PackageConfig = if let Some(path) = args.config_file {
         info!("Pick config file at: {:?}", path);
         let file = fs::read_to_string(path)?;
         toml::from_str(&file)?
     } else {
-        pick_interactive(args)?
+        pick_interactive(app, args)?
     };
-    info!("Picker config: {:?}", config);
+    info!("Picked config: {:?}", config);
 
-    debug!("package meta: \n{:#?}", config.meta);
-    debug!("package source: \n{:#?}", config.source);
-    debug!("package install: \n{:#?}", config.install);
+    let path = app
+        .dirs
+        .data_dir()
+        .join(format!("{}.toml", &config.meta.identifier));
+    fs::write(&path, toml::to_string(&config).unwrap())?;
+    info!("Config written to {:?}", path);
+
+    display_config(&config);
 
     Ok(())
 }
 
-//~
+//~ Display Package Config
+
+fn display_config(config: &PackageConfig) {
+    println!("{}", "-----------------".purple());
+    println!("Picked package: {}", config.meta.identifier.blue());
+
+    println!("Download from:");
+    match config.source {
+        PackageSource::Github(ref github) => {
+            println!(
+                "  {}:  {}/{}",
+                "GitHub".blue(),
+                github.owner.blue(),
+                github.repo.blue(),
+            );
+            println!("  Release: {}", github.asset.blue(),);
+            println!("  Extract: {}", ExtractOption::from(github.extract).blue());
+            println!(
+                "  Version: from {} with regex \"{}\"",
+                github.version.member.blue(),
+                github.version.regex.blue()
+            );
+        }
+    }
+
+    println!("Install to:");
+    if let Some(ref binary) = config.install.binary {
+        let s = if let Some(ref rename) = binary.rename {
+            format!("{} -> {}", &binary.target.blue(), rename.blue())
+        } else {
+            format!("{}", binary.target.blue())
+        };
+        println!(
+            "  {}: {} (`{}`, \"{}\")",
+            "Binary".blue(),
+            s,
+            binary.version.arg.blue(),
+            binary.version.regex.blue(),
+        );
+    }
+
+    println!("{}", "-----------------".purple());
+}
 
 //~ Interactive Pick Prompt
 
-fn pick_interactive(args: PickArgs) -> Result<PackageConfig, PickError> {
+fn pick_interactive(app: &AppConfig, args: PickArgs) -> Result<PackageConfig, PickError> {
     let cfg = default_render_config();
     let id = if let Some(id) = args.identifier {
+        if Path::new(app.dirs.data_dir())
+            .join(format!("{id}.toml"))
+            .exists()
+        {
+            return Err(PickError::IdCollide(id.into()));
+        }
         println!(
             "{} Package identifier: {}",
             '✓'.bright_green(),
@@ -60,7 +118,12 @@ fn pick_interactive(args: PickArgs) -> Result<PackageConfig, PickError> {
         );
         id
     } else {
-        text_required("Package identifier:", cfg).prompt()?
+        let id = text_required("Package identifier:", cfg).prompt()?;
+        let path = Path::new(app.dirs.data_dir()).join(format!("{id}.toml"));
+        if path.exists() {
+            return Err(PickError::IdCollide(id.into()));
+        }
+        id
     };
 
     let source = match select("Package source:", all_package_sources(), cfg).prompt()? {
@@ -126,8 +189,8 @@ fn prompt_binary(cfg: RenderConfig) -> Result<BinaryInstall, PickError> {
 
     Ok(BinaryInstall {
         target: text_required("Target name:", cfg).prompt()?,
-        alias: Text::new("Alias binary target:")
-            .with_help_message("leave it empty or press <ECS> for no alias")
+        rename: Text::new("Rename binary target:")
+            .with_help_message("leave it empty or press <ECS> for not renaming")
             .with_render_config(cfg)
             .prompt_skippable()?
             .filter(|s| !s.is_empty()),

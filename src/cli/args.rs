@@ -7,6 +7,8 @@ pub enum ReliefArgs {
     Pick(PickArgs),
     Fetch(FetchArgs),
     Drop(DropArgs),
+    List(ListArgs),
+    Edit(EditArgs),
 }
 
 #[derive(Parser, Debug)]
@@ -24,5 +26,13 @@ pub struct FetchArgs {
 
 #[derive(Parser, Debug)]
 pub struct DropArgs {
+    pub identifier: String,
+}
+
+#[derive(Parser, Debug)]
+pub struct ListArgs {}
+
+#[derive(Parser, Debug)]
+pub struct EditArgs {
     pub identifier: String,
 }
