@@ -2,11 +2,14 @@ use inquire::ui::{Attributes, Color, ErrorMessageRenderConfig, RenderConfig, Sty
 use log::info;
 use thiserror::Error;
 
-use self::args::{DropArgs, EditArgs, FetchArgs, ListArgs};
+use self::args::{DropArgs, EditArgs, FetchArgs};
 
 pub mod args;
+mod list;
 mod pick;
 
+#[allow(unused_imports)]
+pub use list::{list, ListError};
 #[allow(unused_imports)]
 pub use pick::{pick, PickError};
 
@@ -21,23 +24,12 @@ pub fn fetch(args: FetchArgs) -> Result<(), FetchError> {
     Ok(())
 }
 
-//~ Drop
-
-#[derive(Debug, Error)]
-pub enum ListError {}
-
-pub fn list(args: ListArgs) -> Result<(), DropError> {
-    info!("List received args: {:?}", args);
-
-    Ok(())
-}
-
 //~ Edit
 
 #[derive(Debug, Error)]
 pub enum EditError {}
 
-pub fn edit(args: EditArgs) -> Result<(), DropError> {
+pub fn edit(args: EditArgs) -> Result<(), EditError> {
     info!("Edit received args: {:?}", args);
 
     Ok(())
