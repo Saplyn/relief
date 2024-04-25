@@ -65,6 +65,7 @@ pub struct Github {
     pub repo: String,
     pub asset: String,
     pub extract: Option<ExtractType>,
+    #[serde(default = "GithubVersion::default")]
     pub version: GithubVersion,
 }
 
@@ -108,6 +109,7 @@ fn default_gh_ver_member() -> GhVerMember {
 pub struct BinaryInstall {
     pub target: String,
     pub rename: Option<String>,
+    #[serde(default = "BinaryVersion::default")]
     pub version: BinaryVersion,
 }
 
