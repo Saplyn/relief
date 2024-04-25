@@ -46,11 +46,9 @@ pub fn pick(app: &AppConfig, args: PickArgs) -> Result<(), PickError> {
     };
     info!("Picked config: {:?}", config);
 
-    let path = app
-        .dirs
-        .data_dir()
-        .join(format!("{}.toml", &config.meta.identifier));
-    fs::write(&path, toml::to_string(&config).unwrap())?;
+    let path = app.package_dir(&config.meta.identifier);
+    fs::create_dir_all(&path)?;
+    fs::write(path.join("config.toml"), toml::to_string(&config).unwrap())?;
     info!("Config written to {:?}", path);
 
     display_config(&config);
