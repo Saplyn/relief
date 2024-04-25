@@ -1,0 +1,19 @@
+packages/
+├── gitleaks/
+│   ├── config.toml
+│   └── store/
+│       ├── gitleaks
+│       ├── LICENSE
+│       └── README.md
+├── surrealist/
+│   ├── config.toml
+│   └── store/
+│       └── surrealist_2.0.2_amd64.AppImage
+└── jq/
+    ├── config.toml
+    └── store/
+        └── jq-linux-amd64
+bin/
+├── gitleaks -> ../packages/gitleaks/store/gitleaks
+├── surrealist -> ../packages/surrealist/store/surrealist_2.0.2_amd64.AppImage
+└── jq -> ../packages/jq/store/jq-linux-amd64
