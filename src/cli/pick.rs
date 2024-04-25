@@ -41,6 +41,7 @@ pub fn pick(app: &AppConfig, args: PickArgs) -> Result<(), PickError> {
         info!("Pick config file at: {:?}", path);
         let file = fs::read_to_string(path)?;
         toml::from_str(&file)?
+        // FIXME: id collide
     } else {
         pick_interactive(app, args)?
     };
@@ -48,6 +49,7 @@ pub fn pick(app: &AppConfig, args: PickArgs) -> Result<(), PickError> {
 
     let path = app.package_dir(&config.meta.identifier);
     fs::create_dir_all(&path)?;
+    info!("Ensured package dir {:?} exists", path);
     fs::write(path.join("config.toml"), toml::to_string(&config).unwrap())?;
     info!("Config written to {:?}", path);
 
@@ -105,6 +107,7 @@ fn display_config(config: &PackageConfig) {
 fn pick_interactive(app: &AppConfig, args: PickArgs) -> Result<PackageConfig, PickError> {
     let cfg = default_render_config();
     let id = if let Some(id) = args.identifier {
+        // FIXME: new dir structure
         if Path::new(app.dirs.data_dir())
             .join(format!("{id}.toml"))
             .exists()
@@ -120,6 +123,7 @@ fn pick_interactive(app: &AppConfig, args: PickArgs) -> Result<PackageConfig, Pi
     } else {
         let id = text_required("Package identifier:", cfg).prompt()?;
         let path = Path::new(app.dirs.data_dir()).join(format!("{id}.toml"));
+        // FIXME: new dir structure
         if path.exists() {
             return Err(PickError::IdCollide(id.into()));
         }
